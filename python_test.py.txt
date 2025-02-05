@@ -1,0 +1,96 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+#import seaborn as sns
+import lime
+#import lime.lime_tabular
+from lime import lime_tabular
+from lime import submodular_pick
+
+
+print("Dataset dimmensions : {}".format(data.shape))
+
+
+data.groupby('healthy').size()
+
+
+data.groupby('healthy').hist(figsize=(9, 9))
+
+
+# Phase 2- Data cleansing
+
+data.isnull().sum()
+
+
+# Phase 3 - Features enginerring
+
+# Features are a variables except the healthy which is the target (indepenedent) variable
+
+from sklearn.model_selection import train_test_split
+x = data.drop('healthy', axis =1) 
+y =data['healthy'] 
+X_train, X_test, y_train, y_test = train_test_split(x, y, test_size = 0.2, random_state =42)
+
+
+# Phase 4 - Model selection
+
+
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+
+
+models= []
+models.append(('RF', RandomForestClassifier()))
+models.append(('GB', GradientBoostingClassifier()))
+
+
+from sklearn.model_selection import cross_val_score
+from sklearn.metrics import accuracy_score
+
+
+names = []
+scores = []
+for name, model in models:
+    model.fit(X_train, y_train)
+    test_1 = X_test.iloc[1]
+    y_pred = model.predict(X_test)
+    scores.append(accuracy_score(y_test, y_pred))
+    names.append(name)
+tr_split = pd.DataFrame({'Name': names, 'Score' : scores})
+print(tr_split)
+
+
+# Phase 5 - XAI part
+
+
+
+np.random.seed(123)
+
+
+# predict_fn = lambda x: model.predict_proba(x)
+
+
+
+lime_explainer = lime_tabular.LimeTabularExplainer(
+    training_data = np.array(X_train),
+    feature_names = X_train.columns,
+    class_names = ['bad', 'good'],
+    verbose = True,
+    mode = 'classification',
+    
+)
+
+
+
+
+lime_exp = lime_explainer.explain_instance (
+     data_row = test_1,
+     predict_fn = model.predict_proba
+)
+
+lime_exp.show_in_notebook(show_table = True)
+
+
+# Explaination, cholesterol has the most positive influence of becoming healthy followed by maximum heart rate during exercise while calcium intake gave the most negative influence then beeing a male
+
+

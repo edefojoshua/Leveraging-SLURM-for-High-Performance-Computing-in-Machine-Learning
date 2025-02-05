@@ -1,0 +1,12 @@
+#!/bin/bash --login
+#SBATCH -J Joshua
+#SBATCH -o %x.o.%J
+#SBATCH -e %x.e.%J
+#SBATCH --ntasks=1
+#SBATCH -p compute
+#SBATCH project code = scw2196
+#SBATCH --mail -user=joe62@aber.ac.uk
+
+python python_test.py
+
+
